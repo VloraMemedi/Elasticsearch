@@ -10,7 +10,7 @@ import pandas as pd
 start_date = 1451606400
 day = 1451692800
 week = 1452124800
-month  = 1454198400
+month = 1454198400
 year = 1482192000
 threemonths = 1459468800
 
@@ -22,8 +22,8 @@ def avg_ai(param, start, end):
     dt = time1 - time0
     print("AI: Test avg in a day run seconds: ", dt, "value is:", avgai)
 
-avgvalueai = avg_ai('NEI00008', start_date, day)
 
+avgai = avg_ai('NEI00008', start_date, day)
 
 # # Scenario 2  - creating the index
 
@@ -69,7 +69,7 @@ def avg_el_sc2(index):
     print('SC2: Test_min_three months run seconds', dt, "value is:", valueavg)
 
 
-avg_el = avg_el_sc2(index="aday-avg")
+avg_el = avg_el_sc2("aday-avg")
 
 
 # # Scenario 3

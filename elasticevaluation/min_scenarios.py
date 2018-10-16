@@ -57,35 +57,62 @@ def create_bulk_index(connection, index, doc_type, data):
         id += 1
     helpers.bulk(connection, docs)
 
-def minimum_el_sc2(index):
+# def minimum_el_sc2(index):
+#     time0= time.time()
+#     es = Elasticsearch([{'host': 'localhost', 'port': 9200}], timeout=1000)
+#     jsondata = get_data_json(param_enum, start_date, day)
+#     print("Data finished!")
+#     # settings = es.indices.put_settings(body={"settings": {"refresh_interval": "-1"}})
+#     createindex = create_bulk_index(es, index=index, doc_type="_doc", data=jsondata)
+#     print("index created!")
+#     minimum = es.search(index, body={"aggs": {"minimum_value": {"min": {"field": "value"}}}})
+#     valuemin = minimum['aggregations']['minimum_value']
+#     time1 =time.time()
+#     dt = time1-time0
+#     print("SC2: Test day run seconds",  dt, "value is:", valuemin)
+
+
+
+def minimum_el_sc2(index, host, port, param_enum, start_date, end_date, doc_type):
     time0= time.time()
-    es = Elasticsearch([{'host': 'localhost', 'port': 9200}], timeout=1000)
-    jsondata = get_data_json(param_enum, start_date, day)
+    es = Elasticsearch([{'host': host, 'port': port}], timeout=1000)
+    jsondata = get_data_json(param_enum, start_date, end_date)
     print("Data finished!")
     # settings = es.indices.put_settings(body={"settings": {"refresh_interval": "-1"}})
-    createindex = create_bulk_index(es, index=index, doc_type="_doc", data=jsondata)
+    createindex = create_bulk_index(es, index=index, doc_type=doc_type, data=jsondata)
     print("index created!")
     minimum = es.search(index, body={"aggs": {"minimum_value": {"min": {"field": "value"}}}})
     valuemin = minimum['aggregations']['minimum_value']
     time1 =time.time()
     dt = time1-time0
-    print("SC2: Test day rune seoonds is ", dt, "value is:", valuemin)
+    print("SC2: Test day run seconds",  dt, "value is:", valuemin)
 
 
-minimumel = minimum_el_sc2(index="aday-min")
+
+minimumel = minimum_el_sc2("aday-minimumtest", "localhost", 9200, "NEI00008", start_date, day, "_doc")
 
 
 # # Scenario 3
 
+#
+# def minimum_el_sc3(index):
+#     time0= time.time()
+#     es = Elasticsearch([{'host': 'localhost', 'port': 9200}], timeout=1000)
+#     minimum = es.search(index, body={"aggs": {"minimum_value": {"min": {"field": "value"}}}})
+#     valuemin = minimum['aggregations']['minimum_value']
+#     time1 =time.time()
+#     dt = time1-time0
+#     print('SC3: Test_min_threemonths run seconds', dt, "value is:", valuemin)
 
-def minimum_el_sc3(index):
+
+
+def minimum_el_sc3(index, host, port):
     time0= time.time()
-    es = Elasticsearch([{'host': 'localhost', 'port': 9200}], timeout=1000)
+    es = Elasticsearch([{'host': host, 'port': port}], timeout=1000)
     minimum = es.search(index, body={"aggs": {"minimum_value": {"min": {"field": "value"}}}})
     valuemin = minimum['aggregations']['minimum_value']
     time1 =time.time()
     dt = time1-time0
     print('SC3: Test_min_threemonths run seconds', dt, "value is:", valuemin)
 
-
-minimumel_sc3 = minimum_el_sc3(index="aday-min")
+minimumel_sc3 = minimum_el_sc3("aday-minimumtest", 'localhost', 9200)
