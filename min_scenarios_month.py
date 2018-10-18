@@ -22,12 +22,12 @@ def minimum_ai(param, start, end):
     minimumai = csmoai.get_min_param_val(param, start, end)
     time1 = time.time()
     dt = time1 - time0
-    print("AI: Test_min_year run seconds: ", dt, "value is:", minimumai)
+    print("AI: Test min month run seconds: ", dt, "value is:", minimumai)
 
-minimumvalueai = minimum_ai(param_enum, start_date, day)
+minimumvalueai = minimum_ai(param_enum, start_date, month)
 
 
-# # Scenario 2  - creating the index
+# Scenario 2  - creating the bulk index
 
 
 def get_data_json(param, time_start, time_end):
@@ -36,12 +36,11 @@ def get_data_json(param, time_start, time_end):
     return json_string
 
 
-
 def create_bulk_index(connection, index, doc_type, data):
     docs = []
     id = 1
     for key in data:
-        print("adding document with id:", id)
+        # print("adding document with id:", id)
         date = pd.to_datetime(key, unit='us')
         docs.append(
             {
@@ -57,53 +56,26 @@ def create_bulk_index(connection, index, doc_type, data):
         id += 1
     helpers.bulk(connection, docs)
 
-# def minimum_el_sc2(index):
-#     time0= time.time()
-#     es = Elasticsearch([{'host': 'localhost', 'port': 9200}], timeout=1000)
-#     jsondata = get_data_json(param_enum, start_date, day)
-#     print("Data finished!")
-#     # settings = es.indices.put_settings(body={"settings": {"refresh_interval": "-1"}})
-#     createindex = create_bulk_index(es, index=index, doc_type="_doc", data=jsondata)
-#     print("index created!")
-#     minimum = es.search(index, body={"aggs": {"minimum_value": {"min": {"field": "value"}}}})
-#     valuemin = minimum['aggregations']['minimum_value']
-#     time1 =time.time()
-#     dt = time1-time0
-#     print("SC2: Test day run seconds",  dt, "value is:", valuemin)
-
-
 
 def minimum_el_sc2(index, host, port, param_enum, start_date, end_date, doc_type):
     time0= time.time()
     es = Elasticsearch([{'host': host, 'port': port}], timeout=1000)
     jsondata = get_data_json(param_enum, start_date, end_date)
     print("Data finished!")
-    # settings = es.indices.put_settings(body={"settings": {"refresh_interval": "-1"}})
     createindex = create_bulk_index(es, index=index, doc_type=doc_type, data=jsondata)
     print("index created!")
     minimum = es.search(index, body={"aggs": {"minimum_value": {"min": {"field": "value"}}}})
     valuemin = minimum['aggregations']['minimum_value']
     time1 =time.time()
     dt = time1-time0
-    print("SC2: Test day run seconds",  dt, "value is:", valuemin)
+    print("SC2: Test min month run seconds",  dt, "value is:", valuemin)
 
 
 
-minimumel = minimum_el_sc2("aday-minimumtest", "localhost", 9200, "NEI00008", start_date, day, "_doc")
+minimumel = minimum_el_sc2("amonth-minimum_final", "localhost", 9200, "NEI00008", start_date, month, "_doc")
 
 
-# # Scenario 3
-
-#
-# def minimum_el_sc3(index):
-#     time0= time.time()
-#     es = Elasticsearch([{'host': 'localhost', 'port': 9200}], timeout=1000)
-#     minimum = es.search(index, body={"aggs": {"minimum_value": {"min": {"field": "value"}}}})
-#     valuemin = minimum['aggregations']['minimum_value']
-#     time1 =time.time()
-#     dt = time1-time0
-#     print('SC3: Test_min_threemonths run seconds', dt, "value is:", valuemin)
-
+# Scenario 3
 
 
 def minimum_el_sc3(index, host, port):
@@ -113,6 +85,6 @@ def minimum_el_sc3(index, host, port):
     valuemin = minimum['aggregations']['minimum_value']
     time1 =time.time()
     dt = time1-time0
-    print('SC3: Test_min_threemonths run seconds', dt, "value is:", valuemin)
+    print('SC3: Test min month run seconds', dt, "value is:", valuemin)
 
-minimumel_sc3 = minimum_el_sc3("aday-minimumtest", 'localhost', 9200)
+minimumel_sc3 = minimum_el_sc3("amonth-minimum_final", 'localhost', 9200)
