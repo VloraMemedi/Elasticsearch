@@ -7,6 +7,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 import time
 import pandas as pd
+from collections import deque
 
 param_enum = "NEI00008"
 start_date = 1451606400
@@ -54,7 +55,10 @@ def create_bulk_index(connection, index, doc_type, data):
             }
         )
         id += 1
-    helpers.bulk(connection, docs)
+    # helpers.bulk(connection, docs)
+    bulk = helpers.parallel_bulk(client=connection, actions=docs, thread_count=8, chunk_size=200)
+    deque(bulk, maxlen=0)
+    connection.indices.refresh()
 
 
 def minimum_el_sc2(index, host, port, param_enum, start_date, end_date, doc_type):
@@ -72,7 +76,7 @@ def minimum_el_sc2(index, host, port, param_enum, start_date, end_date, doc_type
 
 
 
-minimumel = minimum_el_sc2("amonth-minimum_final", "localhost", 9200, "NEI00008", start_date, month, "_doc")
+minimumel = minimum_el_sc2("amonth-minimum_pbulk", "localhost", 9200, "NEI00008", start_date, month, "_doc")
 
 
 # Scenario 3
@@ -87,4 +91,4 @@ def minimum_el_sc3(index, host, port):
     dt = time1-time0
     print('SC3: Test min month run seconds', dt, "value is:", valuemin)
 
-minimumel_sc3 = minimum_el_sc3("amonth-minimum_final", 'localhost', 9200)
+minimumel_sc3 = minimum_el_sc3("amonth-minimum_pbulk", 'localhost', 9200)
