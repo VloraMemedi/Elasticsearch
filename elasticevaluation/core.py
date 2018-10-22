@@ -1,11 +1,12 @@
 import csmoai
 import csmodb
-
 import json
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 import time
 import pandas as pd
+from collections import deque
+
 
 param_enum = "NEI00008"
 start_date = 1451606400
@@ -18,13 +19,8 @@ threemonths = 1459468800
 "Scenario 1 - CSMO Analytics"
 
 def minimum_ai(param, start, end):
-    time0 = time.time()
     minimumai = csmoai.get_min_param_val(param, start, end)
-    time1 = time.time()
-    dt = time1 - time0
-    print("AI: Test min day run seconds: ", dt, "value is:", minimumai)
 
-#min_ai = minimum_ai(param_enum, start_date, day)
 
 "Scenario 2 - Creating the index and storing data"
 
@@ -53,7 +49,10 @@ def create_bulk_index(connection, index, doc_type, data):
             }
         )
         id += 1
-    helpers.bulk(connection, docs)
+    # helpers.bulk(connection, docs)
+    bulk = helpers.parallel_bulk(client=connection, actions=docs, thread_count=8, chunk_size=200)
+    deque(bulk, maxlen=0)
+    connection.indices.refresh()
 
 
 def minimum_el_sc2(index, host, port, param_enum, start_date, end_date, doc_type):
@@ -67,12 +66,7 @@ def minimum_el_sc2(index, host, port, param_enum, start_date, end_date, doc_type
     valuemin = minimum['aggregations']['minimum_value']
     time1 =time.time()
     dt = time1-time0
-    print("SC2: Test day run seconds",  dt, "value is:", valuemin)
-    # print("SC2: Test week run seconds", dt, "value is:", valuemin)
-    # print("SC2: Test month run seconds", dt, "value is:", valuemin)
 
-
-#minimumel_sc2 = minimum_el_sc2("aday-minimumtest", "localhost", 9200, "NEI00008", start_date, day, "_doc")
 
 "Scenario 3 - Querying data with available index"
 
@@ -84,29 +78,21 @@ def minimum_el_sc3(index, host, port):
     valuemin = minimum['aggregations']['minimum_value']
     time1 =time.time()
     dt = time1-time0
-    print('SC3: Test_min_threemonths run seconds', dt, "value is:", valuemin)
 
-#minimum_sc3 = minimum_el_sc3("aday-minimumtest", 'localhost', 9200)
+
 
 "Scenarios for the maximum calculations"
 
 #Scenario 1
 
-def maximum_ai(param, start, end):
-    time0 = time.time()
-    maximumai = csmoai.get_max_param_val(param, start, end)
-    time1 = time.time()
-    dt = time1 - time0
-    print("AI: Test maximum day run seconds: ", dt, "value is:", maximumai)
-    # print("AI: Test maximum week run seconds", dt, "value is:", maximumai)
-    # print("AI: Test maximum month run seconds", dt, "value is:", maximumai)
 
-#max_ai = maximum_ai(param_enum, start_date, day)
+def maximum_ai(param, start, end):
+    maximumai = csmoai.get_max_param_val(param, start, end)
+
 
 #Scenario 2
 
 def maximum_el_sc2(index, host, port, param_enum, start_date, end_date, doc_type):
-    time0= time.time()
     es = Elasticsearch([{'host': host, 'port': port}], timeout=1000)
     jsondata = get_data_json(param_enum, start_date, end_date)
     print("Data finished!")
@@ -114,27 +100,40 @@ def maximum_el_sc2(index, host, port, param_enum, start_date, end_date, doc_type
     print("index created!")
     maximum = es.search(index, body={"aggs": {"maximum_value": {"max": {"field": "value"}}}})
     valuemax = maximum['aggregations']['maximum_value']
-    time1 =time.time()
-    dt = time1-time0
-    print("SC2: Test day run seconds",  dt, "value is:", valuemax)
-    # print("SC2: Test week run seconds", dt, "value is:", valuemax)
-    # print("SC2: Test month run seconds", dt, "value is:", valuemax)
-    # print("SC2: Test year run seconds", dt, "value is:", valuemax)
 
-
-#maximumel_sc2 = maximum_el_sc2("aday-maximumtest", "localhost", 9200, "NEI00008", start_date, day, "_doc")
 
 #Scenario 3
 
 def maximum_el_sc3(index, host, port):
-    time0= time.time()
     es = Elasticsearch([{'host': host, 'port': port}], timeout=1000)
     maximum = es.search(index, body={"aggs": {"maximum_value": {"max": {"field": "value"}}}})
     valuemax = maximum['aggregations']['maximum_value']
-    time1 =time.time()
-    dt = time1-time0
-    print('SC3: Test max_threemonths run seconds', dt, "value is:", valuemax)
     es.indices.refresh(index=index)
 
-#maximumel_sc3 = maximum_el_sc3("aday-maximumtest", "localhost", 9200)
+"Scenarios for the  avg  calculations"
 
+#Scenario 1
+
+def avg_ai(param, start, end):
+    avgai = csmoai.get_avg_param_val(param, start, end)
+
+
+#Scenario 2
+
+def avg_el_sc2(index, host, port, param_enum, start_date, end_date, doc_type):
+    es = Elasticsearch([{'host': host, 'port': port}], timeout=1000)
+    jsondata = get_data_json(param_enum, start_date, end_date)
+    print("Data finished!")
+    createindex = create_bulk_index(es, index=index, doc_type=doc_type, data=jsondata)
+    print("index created!")
+    avg = es.search(index, body={"aggs": {"average_value": {"avg": {"field": "value"}}}})
+    valueavg = avg['aggregations']['average_value']
+
+
+#Scenario 3
+
+def avg_el_sc3(index, host, port):
+    es = Elasticsearch([{'host': host, 'port': port}], timeout=1000)
+    avg = es.search(index, body={"aggs": {"average_value": {"avg": {"field": "value"}}}})
+    valueavg = avg['aggregations']['average_value']
+    es.indices.refresh(index=index)
