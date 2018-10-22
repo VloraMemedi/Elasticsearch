@@ -79,7 +79,7 @@ def avg_el_sc2(index, host, port, param, start_date, end_date):
     # print('SC2: Test avg in a month run seconds', dt, "value is:", valueavg)
 
 
-avg_el = avg_el_sc2("aday-avg_final", host, port, param, start_date, day)
+avg_el = avg_el_sc2("aday-avgtest10", host, port, param, start_date, day)
 
 
 # Scenario 3 - querying on stored data
@@ -97,4 +97,4 @@ def avg_el_sc3(index, host, port):
     # print('SC3: Test for a year run seconds', dt, "value is:", valueavg)
 
 
-avg_sc3 = avg_el_sc3("aday-avg_final", host, port)
+avg_sc3 = avg_el_sc3("aday-avgtest10", host, port)
